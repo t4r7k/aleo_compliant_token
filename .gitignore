@@ -1,0 +1,7 @@
+.env
+outputs/
+*.avm
+*.prover
+*.verifier
+.DS_Store
+run.sh
