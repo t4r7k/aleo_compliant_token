@@ -30,6 +30,10 @@ mapping has_spend_limit:
     key as field.public;
     value as boolean.public;
 
+mapping whitelist:
+    key as address.public;
+    value as boolean.public;
+
 function transfer_private:
     input r0 as token_registry.aleo/Token.record;
     input r1 as SpendLimit.record;
@@ -44,7 +48,7 @@ function transfer_private:
     cast r1.owner r7 r4 into r9 as SpendLimit.record;
     call token_registry.aleo/prehook_private r0 r2 4294967295u32 into r10 r11 r12;
     call token_registry.aleo/transfer_private r3 r2 r11 into r13 r14 r15;
-    async transfer_private r12 r15 r4 into r16;
+    async transfer_private r12 r15 r4 r3 into r16;
     output r9 as SpendLimit.record;
     output r10 as token_registry.aleo/Token.record;
     output r13 as token_registry.aleo/Token.record;
@@ -55,10 +59,13 @@ finalize transfer_private:
     input r0 as token_registry.aleo/prehook_private.future;
     input r1 as token_registry.aleo/transfer_private.future;
     input r2 as u32.public;
+    input r3 as address.public;
     await r0;
     await r1;
-    rem block.height 28_800u32 into r3;
-    assert.eq r2 r3;
+    contains whitelist[r3] into r4;
+    assert.eq r4 true;
+    rem block.height 28_800u32 into r5;
+    assert.eq r2 r5;
 
 function initialize:
     assert.eq self.caller aleo10047h9c9efxz3d0u69xn7alclvsvt96ysuhts80p7h2eh57kh5zsjwsp8f;
@@ -84,6 +91,26 @@ finalize mint_private:
     not r1 into r2;
     assert.eq r2 true;
     set true into has_minted[0u8];
+
+function whitelist_add:
+    input r0 as address.private;
+    assert.eq self.caller aleo10047h9c9efxz3d0u69xn7alclvsvt96ysuhts80p7h2eh57kh5zsjwsp8f;
+    async whitelist_add r0 into r1;
+    output r1 as compliant_token_test_1352.aleo/whitelist_add.future;
+
+finalize whitelist_add:
+    input r0 as address.public;
+    set true into whitelist[r0];
+
+function whitelist_remove:
+    input r0 as address.private;
+    assert.eq self.caller aleo10047h9c9efxz3d0u69xn7alclvsvt96ysuhts80p7h2eh57kh5zsjwsp8f;
+    async whitelist_remove r0 into r1;
+    output r1 as compliant_token_test_1352.aleo/whitelist_remove.future;
+
+finalize whitelist_remove:
+    input r0 as address.public;
+    remove whitelist[r0];
 
 function issue_limit:
     input r0 as address.private;

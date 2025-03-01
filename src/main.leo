@@ -24,6 +24,9 @@ program compliant_token_test_1352.aleo {
   // Mapping to track whether a user has an active spend limit.
   mapping has_spend_limit: field => bool;
 
+  // Mapping to track whether a user has an active spend limit.
+  mapping whitelist: address => bool;
+
   /**
    * Initializes the compliant token by registering it with the token registry.
    * Can only be called by the ADMIN_ADDRESS.
@@ -58,6 +61,35 @@ program compliant_token_test_1352.aleo {
   async function finalize_register_token(f0: Future) {
     f0.await();
   }
+
+  /**
+   * Adds an address to the whitelist. 
+   * Can only be called by the ADMIN_ADDRESS.
+   */
+  async transition whitelist_add(user: address) -> Future {
+    assert_eq(self.caller, ADMIN_ADDRESS);
+    
+    return finalize_whitelist_add(user);
+  }
+
+  async function finalize_whitelist_add(user: address) {
+    whitelist.set(user, true);
+  }
+
+  /**
+   * Removes an address from the whitelist.
+   * Can only be called by the ADMIN_ADDRESS.
+   */
+  async transition whitelist_remove(user: address) -> Future {
+    assert_eq(self.caller, ADMIN_ADDRESS);
+    
+    return finalize_whitelist_remove(user);
+  }
+
+  async function finalize_whitelist_remove(user: address) {
+    whitelist.remove(user);
+  }
+
 
   /**
    * Mints the maximum supply of tokens to the ADMIN_ADDRESS.
@@ -107,8 +139,8 @@ program compliant_token_test_1352.aleo {
   }
 
   /**
-   * Transfers tokens privately while enforcing the user's spend limit.
-   * Ensures that the user cannot exceed the daily spend limit.
+   * Transfers tokens privately while enforcing the user's spend limit and checking the whitelist.
+   * Ensures that the user cannot exceed the daily spend limit and cannot transfer to users that are not in whitelist.
    */
   async transition transfer_private(
     input_token: token_registry.aleo/Token, // The input token record to be spent
@@ -160,7 +192,7 @@ program compliant_token_test_1352.aleo {
       prehook_output.0,    // Remaining balance from authorization
       transfer_output.0,   // Remaining balance from transfer (should be 0)
       transfer_output.1,   // The token record sent to the recipient
-      finalize_transfer_private(prehook_output.2, transfer_output.2, epoch) // Await the finalization process
+      finalize_transfer_private(prehook_output.2, transfer_output.2, epoch, recipient) // Await the finalization process
     );
   }
 
@@ -170,10 +202,14 @@ program compliant_token_test_1352.aleo {
   async function finalize_transfer_private(
     f0: Future, // Future from prehook_private
     f1: Future, // Future from transfer_private
-    epoch: u32
+    epoch: u32,
+    recipient: address
   ) {
     f0.await();
     f1.await();
+
+    let is_in_whitelist: bool = whitelist.contains(recipient);
+    assert(is_in_whitelist);
 
     let current_epoch: u32 = block.height % BLOCKS_IN_A_DAY;
     assert_eq(epoch, current_epoch);
