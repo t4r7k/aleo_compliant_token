@@ -1,4 +1,4 @@
-# compliant_token_test_1353.aleo
+# compliant_token_test_1354.aleo
 
 ## Build Guide
 
