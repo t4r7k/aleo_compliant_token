@@ -2,10 +2,10 @@ import credits.aleo;
 import token_registry.aleo;
 
 // The 'compliant_token' program.
-program compliant_token_test_1354.aleo {
+program compliant_token_test_1353.aleo {
   // Constants defining the token parameters.
   const COMPLAINT_TOKEN_ID: field = 71619063553950105623552field; // Unique token identifier
-  const ADMIN_ADDRESS: address = aleo14vhr2wuvyx2wtfa8pxm5cu5xp5nv5upw9rw20q86l6f9grn3rvqspt8fm7; // Admin address with minting and issuing privileges
+  const ADMIN_ADDRESS: address = aleo10047h9c9efxz3d0u69xn7alclvsvt96ysuhts80p7h2eh57kh5zsjwsp8f; // Admin address with minting and issuing privileges
   const MAX_SUPPLY: u128 = 1_000_000_000_000_000u128; // Maximum supply of the token
   const BLOCKS_IN_A_DAY: u32 = 28_800u32; // Number of blocks per day for epoch-based calculations
   const MAX_SPEND_PER_DAY: u128 = 10_000_000_000u128; // Daily spending limit per user
